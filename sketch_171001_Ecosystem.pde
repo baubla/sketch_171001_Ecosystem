@@ -125,7 +125,7 @@ void draw() {
       //  feed.add(buds.get(i).feed(flowers.get(closeflower).p));
       //}
       //buds.get(i).applyMuscle(feed);
-
+      b.decide();
       b.update();
       b.show();
     }
