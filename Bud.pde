@@ -3,12 +3,18 @@ class Bud extends WorldObject {
   PVector v;
   PVector a;
   float angle;
+  float angleNoiseSeed;
   float d;
   float fear;
   float age;
   float lifespan;
   color c;
   float sight;
+  float puberty;
+  float mateCooldown;
+  float feedCooldown;
+  float mateThreshold;
+  float fleeThreshold;
 
   Bud (float x, float y, float[] DNA_) {
     super(x, y);
@@ -16,21 +22,32 @@ class Bud extends WorldObject {
     p = new PVector(x, y);
     v = new PVector(0, 0);
     a = new PVector(0, 0);
-    angle = random(2*PI);
+    
+    angleNoiseSeed = x * y * 1/DNA[0] * 1/DNA[1];
+    angle = map(noise(angleNoiseSeed, 0),0,1,0,2*PI);
 
     //physical characteristics and personality
     float[] dDNA = {DNA[0], DNA[1]};
     float dGene = formulateGene(dDNA);
     d = map(dGene, 0, 1, 10, 20);
-
-    fear = DNA[2]*DNA[8]*DNA[9];
-    lifespan = map(DNA[4]*DNA[5]*DNA[6], 0, 1, 30, 15);
+    
+    float[] fearDNA = {DNA[2], DNA[8], DNA[9]};
+    float fearGene = formulateGene(fearDNA);
+    fear = fearGene;
+    
+    float[] lifespanDNA = {DNA[4], DNA[5], DNA[6]};
+    float lifespanGene = formulateGene(lifespanDNA);
+    lifespan = map(lifespanGene, 0, 1, 30, 15);
+    
+    float[] pubertyDNA = {DNA[0], DNA[9]};
+    float pubertyGene = formulateGene(pubertyDNA);
+    puberty = map(pubertyGene, 0, 1, 8, 12);
 
     //color
     float[] pcolorDNA = {DNA[0], DNA[1], DNA[6]};
     float pcolorGene = formulateGene(pcolorDNA);
     int pcolor = int(map(pcolorGene, 0, 1, 255, 0));
-    
+
     int acolor = int(map(DNA[7], 0.5, 1.5, 0, 255));
     if (DNA[7] > 1.17) {
       c = color(0, pcolor, acolor);
@@ -43,6 +60,12 @@ class Bud extends WorldObject {
     sight = 50;
 
     age = 0;
+    
+    mateCooldown = 0;
+    feedCooldown = 0;
+    
+    mateThreshold = 0.8;
+    fleeThreshold = 0.6;
   }
 
   float formulateGene(float[] strands) {
@@ -54,11 +77,20 @@ class Bud extends WorldObject {
     return map(geneValue, pow(0.5, numStrands), pow(1.5, numStrands), 0, 1);
   }
 
-  //PVector flee(PVector e) {
-  //  PVector f = PVector.sub(e, p);
-  //  f.setMag(-50*fear/f.mag());
-  //  return f;
-  //}
+  void fleeMode() {
+    ArrayList<Bud> budsInView = getBudsInView();
+    PVector f = new PVector(0, 0);
+    for (Bud b : budsInView) {
+      float mateEvaluation = evaluateMate(b);
+      if (mateEvaluation < fleeThreshold) {
+        PVector f_ = PVector.sub(p, b.p);
+        f_.setMag(1000*fear/f_.mag());
+        f.add(f_);
+      }
+    }
+    println(f.mag());
+    applyForce(f);
+  }
 
   //PVector flock(PVector friend) {
   //  PVector f = PVector.sub(friend, p);
@@ -72,10 +104,10 @@ class Bud extends WorldObject {
   //  return f;
   //}
 
-  //PVector fatigue() {
-  //  PVector f = v.copy().mult(-10*v.mag());
-  //  return f;
-  //}
+  void fatigue() {
+    PVector f = v.copy().mult(-10*v.mag());
+    applyForce(f);
+  }
 
   //PVector halt() {
   //  PVector f = v.copy().mult(-2);
@@ -131,53 +163,70 @@ class Bud extends WorldObject {
   //    }
   //  }
   //}
-  
+
   void decide() {
-    
+
     Bud closestBud = getClosestBud();
     Flower closestFlower = getClosestFlower();
-    
+
     if (closestFlower == null && closestBud == null) {
       searchMode();
-      
     } else if (closestFlower == null) {
       float mateEvaluation = evaluateMate(closestBud);
-      if (mateEvaluation > 0.9) {
-        mateMode(closestBud);
-      }
-      
-    } else if (closestBud == null) {
-      feedMode(closestFlower);
-      
-    } else {
-      float distToClosestBud = PVector.dist(p, closestBud.p);
-      float distToClosestFlower = PVector.dist(p, closestFlower.p);
-      if (distToClosestBud < distToClosestFlower) {
+      if (mateEvaluation < fleeThreshold) {
+        fleeMode();
+      } else if (mateEvaluation > mateThreshold && age >= puberty && mateCooldown <= 0) {
         mateMode(closestBud);
       } else {
-        feedMode(closestFlower);
+        searchMode();
       }
-      
+    } else if (closestBud == null) {
+      if (feedCooldown <= 0) {
+        feedMode(closestFlower);
+      } else {
+        searchMode();
+      }
+    } else {
+      float mateEvaluation = evaluateMate(closestBud);
+      if (mateEvaluation < fleeThreshold) {
+        fleeMode();
+      } else {
+        float distToClosestBud = PVector.dist(p, closestBud.p);
+        float distToClosestFlower = PVector.dist(p, closestFlower.p);
+        if (distToClosestBud < distToClosestFlower) {
+          if (mateEvaluation > mateThreshold && age >= puberty && mateCooldown <= 0) {
+            mateMode(closestBud);
+          } else {
+            searchMode();
+          }
+        } else {
+          if (feedCooldown <= 0) {
+            feedMode(closestFlower);
+          } else {
+            searchMode();
+          }
+        }
+      }
     }
-    
   }
-  
+
   void searchMode() {
     PVector f = PVector.fromAngle(angle);
+    f.mult(2);
     applyForce(f);
   }
-  
+
   void mateMode(Bud b) {
     float distanceToMate = PVector.dist(p, b.p);
     if (distanceToMate < (d/2 + b.d/2)) {
       mate(b);
     } else {
       PVector f = PVector.sub(b.p, p);
-      f.mult(0.1);
+      f.mult(0.05);
       applyForce(f);
     }
   }
-  
+
   void feedMode(Flower f) {
     float distanceToFlower = PVector.dist(p, f.p);
     if (distanceToFlower < d/2) {
@@ -188,8 +237,9 @@ class Bud extends WorldObject {
       applyForce(force);
     }
   }
-  
+
   void mate(Bud b) {
+<<<<<<< HEAD
     b.birth(DNA);
   }
   
@@ -203,19 +253,30 @@ class Bud extends WorldObject {
     child.v = PVector.fromAngle(angle).mult(0.5);
     buds.add(new Bud(p.x, p.y, childDNA));
     
+=======
+    Bud child = new Bud(b.p.x, b.p.y, buds.size());
+    buds.add(child);
+    effects.add(new Effect(p.x - 10, p.y - d, "BIRTH"));
+    totalbirths++;
+    mateCooldown = 10;
+    b.mateCooldown = 10;
+>>>>>>> 3861b6e8be8743701e95679109369a2d98b4899c
   }
-  
+
   void eat(Flower f) {
     effects.add(new Effect(p.x - 5, p.y - d, "EAT"));
     lifespan += 5;
+    d = d + f.size/10;
     flowers.remove(f);
+    feedCooldown = 5;
   }
 
   float evaluateMate(Bud b) {
-    float difR = abs(red(b.c)-red(c))/255;
-    float difG = abs(green(b.c)-green(c))/255;
-    float difB = abs(blue(b.c)-blue(c))/255;
+    float difR = abs(red(b.c)-red(c))/255 + 0.5;
+    float difG = abs(green(b.c)-green(c))/255 + 0.5;
+    float difB = abs(blue(b.c)-blue(c))/255 + 0.5;
     float difColor = difR*difG*difB;
+    //println(1 - difColor);
     return 1 - difColor;
   }
 
@@ -241,7 +302,7 @@ class Bud extends WorldObject {
 
     return closestBud;
   }
-  
+
   Flower getClosestFlower() {
 
     ArrayList<Flower> flowersInView = getFlowersInView();
@@ -305,6 +366,9 @@ class Bud extends WorldObject {
   }
 
   void update() {
+    
+    decide();
+    fatigue();
 
     v.add(a);
     p.add(v);
@@ -331,6 +395,17 @@ class Bud extends WorldObject {
     if (age > lifespan - 5) {
       fear = fear * 0.99;
     }
+    
+    angle = map(noise(angleNoiseSeed, age*0.1),0,1,-2*PI,2*PI);
+    
+    if (mateCooldown > 0) {
+      mateCooldown = mateCooldown - 1.0/60;
+    }
+    
+    if (feedCooldown > 0) {
+      feedCooldown = feedCooldown - 1.0/60;
+    }
+    
   }
 
   void show() {
@@ -351,17 +426,18 @@ class Bud extends WorldObject {
       fill(155, 100);
       ellipse(0, 0, d/2, d/2);
     }
-
+    
+    //eye
     fill(0);
     noStroke();
-    //ellipse(0, d-7.5, 5, 5);
+    ellipse(0, d-7.5, 5, 5);
 
     popMatrix();
 
     noStroke();
     //text(nf(v.mag(),0,3), d/2, 0);
 
-    //text(nf(age,0,1) + "/" + nf(lifespan,0,1), d/2, 0);
+    text(puberty, d/2, 0);
 
     popMatrix();
   }

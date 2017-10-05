@@ -13,7 +13,7 @@ float timer;
 int totaldeaths;
 int totalbirths;
 
-final int BUDS_START = 20;
+final int BUDS_START = 2;
 final int DNA_LENGTH = 10;
 final color DEATH_COLOR = color(255,0,0);
 
@@ -125,15 +125,20 @@ void draw() {
       //  feed.add(buds.get(i).feed(flowers.get(closeflower).p));
       //}
       //buds.get(i).applyMuscle(feed);
-      b.decide();
+      //b.decide();
       b.update();
       b.show();
     }
   }
   
   //random flower growth
+<<<<<<< HEAD
   if (random(1) < 0.05) {
     flowers.add(new Flower(random(width), random(height)));
+=======
+  if (random(1) < 0.01) {
+    flowers.add(new Flower(random(width), random(height), flowers.size()));
+>>>>>>> 3861b6e8be8743701e95679109369a2d98b4899c
   }
 
   //show all flowers
