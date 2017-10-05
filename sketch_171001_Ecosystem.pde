@@ -10,12 +10,13 @@ ArrayList<Effect> effects;
 color[] colors;
 float[] fears;
 float timer;
+float dt = 1.0/60;
 int totaldeaths;
 int totalbirths;
 
 final int BUDS_START = 2;
 final int DNA_LENGTH = 10;
-final color DEATH_COLOR = color(255,0,0);
+final color DEATH_COLOR = color(255, 0, 0);
 
 void setup() {
 
@@ -42,16 +43,15 @@ void setup() {
   for (int i = 0; i < 5; i++) {
     flowers.add(new Flower(random(width), random(height)));
   }
-  
+
   //create effects list
   effects = new ArrayList<Effect>();
-  
 }
 
 void draw() {
   background(200);
 
-  timer = timer + 1.0/60;
+  timer = timer + dt;
 
   //if (random(1) < 0.001) {
   //  buds.add(new Bud(random(width), random(height), buds.size()));
@@ -59,17 +59,11 @@ void draw() {
 
   //for each bud
   for (int i = buds.size() - 1; i >= 0; i--) {
-    
     Bud b = buds.get(i);
-    
-    if (b.age > b.lifespan) {
-      b.die();
-    } else {
-      b.update();
-      b.show();
-    }
+    b.update();
+    b.show();
   }
-  
+
   //random flower growth
   if (random(1) < 0.01) {
     flowers.add(new Flower(random(width), random(height)));
@@ -79,11 +73,11 @@ void draw() {
   for (Flower f : flowers) {
     f.show();
   }
-  
+
   //show all effects
   for (int i = effects.size() - 1; i >= 0; i--) {
     Effect e = effects.get(i);
-    if(e.age > e.lifespan) {
+    if (e.age > e.lifespan) {
       effects.remove(e);
     } else {
       e.update();

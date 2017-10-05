@@ -22,23 +22,23 @@ class Bud extends WorldObject {
     p = new PVector(x, y);
     v = new PVector(0, 0);
     a = new PVector(0, 0);
-    
+
     angleNoiseSeed = x * y * 1/DNA[0] * 1/DNA[1];
-    angle = map(noise(angleNoiseSeed, 0),0,1,0,2*PI);
+    angle = map(noise(angleNoiseSeed, 0), 0, 1, 0, 2*PI);
 
     //physical characteristics and personality
     float[] dDNA = {DNA[0], DNA[1]};
     float dGene = formulateGene(dDNA);
     d = map(dGene, 0, 1, 10, 20);
-    
+
     float[] fearDNA = {DNA[2], DNA[8], DNA[9]};
     float fearGene = formulateGene(fearDNA);
     fear = fearGene;
-    
+
     float[] lifespanDNA = {DNA[4], DNA[5], DNA[6]};
     float lifespanGene = formulateGene(lifespanDNA);
     lifespan = map(lifespanGene, 0, 1, 30, 15);
-    
+
     float[] pubertyDNA = {DNA[0], DNA[9]};
     float pubertyGene = formulateGene(pubertyDNA);
     puberty = map(pubertyGene, 0, 1, 8, 12);
@@ -60,10 +60,10 @@ class Bud extends WorldObject {
     sight = 50;
 
     age = 0;
-    
+
     mateCooldown = 0;
     feedCooldown = 0;
-    
+
     mateThreshold = 0.8;
     fleeThreshold = 0.6;
   }
@@ -181,20 +181,19 @@ class Bud extends WorldObject {
     mateCooldown = 10;
     b.mateCooldown = 10;
   }
-  
+
   void birth(float[] fatherDNA) {
     float[] childDNA = new float[10];
     for (int i = 0; i < DNA.length; i++) {
       childDNA[i] = (DNA[i] + fatherDNA[i]) / 2;
     }
-    
+
     Bud child = new Bud(p.x, p.y, childDNA);
     child.v = PVector.fromAngle(angle).mult(0.5);
     buds.add(new Bud(p.x, p.y, childDNA));
-    
+
     effects.add(new Effect(p.x - 10, p.y - d, "BIRTH"));
     totalbirths++;
-    
   }
 
   void eat(Flower f) {
@@ -300,46 +299,50 @@ class Bud extends WorldObject {
   }
 
   void update() {
-    
-    decide();
-    fatigue();
 
-    v.add(a);
-    p.add(v);
+    if (age > lifespan) {
+      die();
+    } else {
 
-    //position bounds
-    if (p.x < d/2) {
-      p.x = d/2;
-      v.x = 0;
-    } else if (p.x > width - d/2) {
-      p.x = width - d/2;
-      v.x = 0;
-    }
-    if (p.y < d/2) {
-      p.y = d/2;
-      v.y = 0;
-    } else if (p.y > height - d/2) {
-      p.y = height - d/2;
-      v.y = 0;
-    }
+      decide();
+      fatigue();
 
-    a.set(0, 0);
+      v.add(a);
+      p.add(v);
 
-    age = age + 1.0/60;
-    if (age > lifespan - 5) {
-      fear = fear * 0.99;
+      //position bounds
+      if (p.x < d/2) {
+        p.x = d/2;
+        v.x = 0;
+      } else if (p.x > width - d/2) {
+        p.x = width - d/2;
+        v.x = 0;
+      }
+      if (p.y < d/2) {
+        p.y = d/2;
+        v.y = 0;
+      } else if (p.y > height - d/2) {
+        p.y = height - d/2;
+        v.y = 0;
+      }
+
+      a.set(0, 0);
+
+      age = age + dt;
+      if (age > lifespan - 5) {
+        fear = fear * 0.99;
+      }
+
+      angle = map(noise(angleNoiseSeed, age*0.1), 0, 1, -2*PI, 2*PI);
+
+      if (mateCooldown > 0) {
+        mateCooldown = mateCooldown - dt;
+      }
+
+      if (feedCooldown > 0) {
+        feedCooldown = feedCooldown - dt;
+      }
     }
-    
-    angle = map(noise(angleNoiseSeed, age*0.1),0,1,-2*PI,2*PI);
-    
-    if (mateCooldown > 0) {
-      mateCooldown = mateCooldown - 1.0/60;
-    }
-    
-    if (feedCooldown > 0) {
-      feedCooldown = feedCooldown - 1.0/60;
-    }
-    
   }
 
   void show() {
@@ -360,7 +363,7 @@ class Bud extends WorldObject {
       fill(155, 100);
       ellipse(0, 0, d/2, d/2);
     }
-    
+
     //eye
     fill(0);
     noStroke();

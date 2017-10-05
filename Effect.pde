@@ -22,7 +22,7 @@ class Effect {
   
   void update() {
     p.y = p.y - 0.1;
-    age = age + 1.0/60;
+    age = age + dt;
     a = map(age, 0, 1, 255, 0);
   }
   
