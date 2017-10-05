@@ -175,7 +175,7 @@ class Bud extends WorldObject {
       float mateEvaluation = evaluateMate(b);
       if (mateEvaluation < fleeThreshold) {
         PVector f_ = PVector.sub(p, b.p);
-        f_.setMag(50*fear/f_.mag());
+        f_.setMag(150*fear/f_.mag());
         f.add(f_);
       }
     }
