@@ -15,6 +15,8 @@ class Bud extends WorldObject {
   float feedCooldown;
   float mateThreshold;
   float fleeThreshold;
+  
+  int mode;
 
   Bud (float x, float y, float[] DNA_) {
     super(x, y);
@@ -24,7 +26,7 @@ class Bud extends WorldObject {
     a = new PVector(0, 0);
 
     angleNoiseSeed = x * y * 1/DNA[0] * 1/DNA[1];
-    angle = map(noise(angleNoiseSeed, 0), 0, 1, 0, 2*PI);
+    angle = map(noise(angleNoiseSeed, 0), 0, 1, -3*PI, 2*PI);
 
     //physical characteristics and personality
     float[] dDNA = {DNA[0], DNA[1]};
@@ -54,7 +56,7 @@ class Bud extends WorldObject {
     } else if (DNA[7] > 0.83) {
       c = color(acolor, 0, pcolor);
     } else {
-      c = color(pcolor, 1-acolor, 0);
+      c = color(pcolor, acolor, 0);
     }
 
     sight = 50;
@@ -66,6 +68,8 @@ class Bud extends WorldObject {
 
     mateThreshold = 0.8;
     fleeThreshold = 0.6;
+    
+    mode = 0;
   }
 
   float formulateGene(float[] strands) {
@@ -77,23 +81,8 @@ class Bud extends WorldObject {
     return map(geneValue, pow(0.5, numStrands), pow(1.5, numStrands), 0, 1);
   }
 
-  void fleeMode() {
-    ArrayList<Bud> budsInView = getBudsInView();
-    PVector f = new PVector(0, 0);
-    for (Bud b : budsInView) {
-      float mateEvaluation = evaluateMate(b);
-      if (mateEvaluation < fleeThreshold) {
-        PVector f_ = PVector.sub(p, b.p);
-        f_.setMag(1000*fear/f_.mag());
-        f.add(f_);
-      }
-    }
-    println(f.mag());
-    applyForce(f);
-  }
-
   void fatigue() {
-    PVector f = v.copy().mult(-10*v.mag());
+    PVector f = v.copy().mult(-20*v.mag());
     applyForce(f);
   }
 
@@ -149,11 +138,24 @@ class Bud extends WorldObject {
   }
 
   void searchMode() {
-    PVector f = PVector.fromAngle(angle);
+    PVector f = PVector.fromAngle(angle+PI/2);
     f.mult(2);
     applyForce(f);
+    mode = 0;
   }
 
+  void feedMode(Flower f) {
+    float distanceToFlower = PVector.dist(p, f.p);
+    if (distanceToFlower < d/2) {
+      eat(f);
+    } else {
+      PVector force = PVector.sub(f.p, p);
+      force.mult(0.1);
+      applyForce(force);
+    }
+    mode = 1;
+  }
+  
   void mateMode(Bud b) {
     float distanceToMate = PVector.dist(p, b.p);
     if (distanceToMate < (d/2 + b.d/2)) {
@@ -163,29 +165,41 @@ class Bud extends WorldObject {
       f.mult(0.05);
       applyForce(f);
     }
+    mode = 2;
   }
 
-  void feedMode(Flower f) {
-    float distanceToFlower = PVector.dist(p, f.p);
-    if (distanceToFlower < d/2) {
-      eat(f);
-    } else {
-      PVector force = PVector.sub(f.p, p);
-      force.mult(0.05);
-      applyForce(force);
+  void fleeMode() {
+    ArrayList<Bud> budsInView = getBudsInView();
+    PVector f = new PVector(0, 0);
+    for (Bud b : budsInView) {
+      float mateEvaluation = evaluateMate(b);
+      if (mateEvaluation < fleeThreshold) {
+        PVector f_ = PVector.sub(p, b.p);
+        f_.setMag(50*fear/f_.mag());
+        f.add(f_);
+      }
     }
+    //println(f.mag());
+    applyForce(f);
+    mode = 3;
   }
 
   void mate(Bud b) {
-    b.birth(DNA);
+    if (b.age >= b.puberty && b.mateCooldown <= 0) {
+      b.birth(DNA);
+      b.mateCooldown = 10;
+    }
     mateCooldown = 10;
-    b.mateCooldown = 10;
   }
 
   void birth(float[] fatherDNA) {
-    float[] childDNA = new float[10];
-    for (int i = 0; i < DNA.length; i++) {
-      childDNA[i] = (DNA[i] + fatherDNA[i]) / 2;
+    float[] childDNA = new float[DNA_LENGTH];
+    for (int i = 0; i < DNA_LENGTH; i++) {
+      if (random(1) > mutationRate) {
+        childDNA[i] = (DNA[i] + fatherDNA[i]) / 2;
+      } else {
+        childDNA[i] = random(0.5, 1.5);
+      }
     }
 
     Bud child = new Bud(p.x, p.y, childDNA);
@@ -198,7 +212,7 @@ class Bud extends WorldObject {
 
   void eat(Flower f) {
     effects.add(new Effect(p.x - 5, p.y - d, "EAT"));
-    lifespan += 5;
+    lifespan += f.size*2;
     d = d + f.size/10;
     flowers.remove(f);
     feedCooldown = 5;
@@ -333,7 +347,7 @@ class Bud extends WorldObject {
         fear = fear * 0.99;
       }
 
-      angle = map(noise(angleNoiseSeed, age*0.1), 0, 1, -2*PI, 2*PI);
+      angle = map(noise(angleNoiseSeed, age*0.1), 0, 1, -3*PI, 2*PI);
 
       if (mateCooldown > 0) {
         mateCooldown = mateCooldown - dt;
@@ -367,14 +381,14 @@ class Bud extends WorldObject {
     //eye
     fill(0);
     noStroke();
-    ellipse(0, d-7.5, 5, 5);
+    ellipse(0, d/2-2.5, 5, 5);
 
     popMatrix();
 
     noStroke();
     //text(nf(v.mag(),0,3), d/2, 0);
 
-    text(puberty, d/2, 0);
+    text(modes[mode], d/2, 0);
 
     popMatrix();
   }

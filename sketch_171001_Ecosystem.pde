@@ -3,37 +3,40 @@
 //Mating
 //Growth
 //Physical features as a result of the genome
+//color gets grayer over time for the buds, they become less desirable and old
+//vision is only what is in front of them
+//only can steer forward and backwards and turn
 
 ArrayList<Bud> buds;
 ArrayList<Flower> flowers;
 ArrayList<Effect> effects;
-color[] colors;
-float[] fears;
-float timer;
-float dt = 1.0/60;
-int totaldeaths;
-int totalbirths;
 
-final int BUDS_START = 2;
+float timer = 0;
+float dt = 1.0/60;
+
+int totaldeaths = 0;
+int totalbirths = 0;
+
+float mutationRate = 0.05;
+float randomFlowerSpawnRate = 0.02;
+
+final int BUDS_START = 20;
 final int DNA_LENGTH = 10;
 final color DEATH_COLOR = color(255, 0, 0);
+
+final String[] modes = {"Search", "Feed", "Mate", "Flee"};
 
 void setup() {
 
   frameRate(60);
   size(400, 400);
 
-  timer = 0;
-
-  totaldeaths = 0;
-  totalbirths = 0;
-
   //create buds list
   buds = new ArrayList<Bud>();
 
   //add BUDS_START buds at start
   for (int i = 0; i < BUDS_START; i++) {
-    buds.add(new Bud(random(width), random(height), createRandomDNA()));
+    spawnRandomBud(random(width), random(height));
   }
 
   //create flowers list
@@ -65,7 +68,7 @@ void draw() {
   }
 
   //random flower growth
-  if (random(1) < 0.01) {
+  if (random(1) < randomFlowerSpawnRate) {
     flowers.add(new Flower(random(width), random(height)));
   }
 
@@ -95,12 +98,18 @@ void draw() {
 }
 
 void mousePressed() {
-  buds.add(new Bud(mouseX + random(10), mouseY + random(10), createRandomDNA()));
+  spawnRandomBud(mouseX + random(10), mouseY + random(10));
+}
+
+Bud spawnRandomBud(float x, float y) {
+  Bud randomBud = new Bud(x, y, createRandomDNA());
+  buds.add(randomBud);
+  return randomBud;
 }
 
 float[] createRandomDNA() {
-  float[] randomDNA = new float[10];
-  for (int i = 0; i < 10; i++) {
+  float[] randomDNA = new float[DNA_LENGTH];
+  for (int i = 0; i < DNA_LENGTH; i++) {
     randomDNA[i] = random(0.5, 1.5);
   }
   return randomDNA;
