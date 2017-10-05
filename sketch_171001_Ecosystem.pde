@@ -32,7 +32,7 @@ void setup() {
 
   //add BUDS_START buds at start
   for (int i = 0; i < BUDS_START; i++) {
-    buds.add(new Bud(random(width), random(height), i));
+    buds.add(new Bud(random(width), random(height), createRandomDNA()));
   }
 
   //create flowers list
@@ -40,7 +40,7 @@ void setup() {
 
   //add 5 flowers at start
   for (int i = 0; i < 5; i++) {
-    flowers.add(new Flower(random(width), random(height), flowers.size()));
+    flowers.add(new Flower(random(width), random(height)));
   }
   
   //create effects list
@@ -133,7 +133,7 @@ void draw() {
   
   //random flower growth
   if (random(1) < 0.05) {
-    flowers.add(new Flower(random(width), random(height), flowers.size()));
+    flowers.add(new Flower(random(width), random(height)));
   }
 
   //show all flowers
@@ -162,5 +162,13 @@ void draw() {
 }
 
 void mousePressed() {
-  buds.add(new Bud(mouseX + random(10), mouseY + random(10), buds.size()));
+  buds.add(new Bud(mouseX + random(10), mouseY + random(10), createRandomDNA()));
+}
+
+float[] createRandomDNA() {
+  float[] randomDNA = new float[10];
+  for (int i = 0; i < 10; i++) {
+    randomDNA[i] = random(0.5, 1.5);
+  }
+  return randomDNA;
 }

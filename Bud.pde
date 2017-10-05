@@ -10,12 +10,9 @@ class Bud extends WorldObject {
   color c;
   float sight;
 
-  Bud (float x, float y, int id_) {
-    super(x, y, id_);
-    DNA = new float[DNA_LENGTH];
-    for (int i = 0; i < DNA_LENGTH; i++) {
-      DNA[i] = random(0.5, 1.5);
-    }
+  Bud (float x, float y, float[] DNA_) {
+    super(x, y);
+    DNA = DNA_;
     p = new PVector(x, y);
     v = new PVector(0, 0);
     a = new PVector(0, 0);
@@ -193,8 +190,19 @@ class Bud extends WorldObject {
   }
   
   void mate(Bud b) {
-    Bud child = new Bud(b.p.x, b.p.y, buds.size());
-    buds.add(child);
+    b.birth(DNA);
+  }
+  
+  void birth(float[] fatherDNA) {
+    float[] childDNA = new float[10];
+    for (int i = 0; i < DNA.length; i++) {
+      childDNA[i] = (DNA[i] + fatherDNA[i]) / 2;
+    }
+    
+    Bud child = new Bud(p.x, p.y, childDNA);
+    child.v = PVector.fromAngle(angle).mult(0.5);
+    buds.add(new Bud(p.x, p.y, childDNA));
+    
   }
   
   void eat(Flower f) {
@@ -262,7 +270,7 @@ class Bud extends WorldObject {
     ArrayList<Bud> budsInView = new ArrayList<Bud>();
 
     for (Bud b : buds) {
-      if (id != b.id) {
+      if (this != b) {
         float distance = PVector.dist(p, b.p);
         if (distance <= 50) {
           budsInView.add(b);

@@ -1,7 +1,7 @@
 class Flower extends WorldObject {
   
-  Flower(float x, float y, int id_) {
-    super(x, y, id_);
+  Flower(float x, float y) {
+    super(x, y);
   }
   
   void show() {
