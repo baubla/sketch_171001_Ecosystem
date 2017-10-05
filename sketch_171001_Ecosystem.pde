@@ -65,80 +65,14 @@ void draw() {
     if (b.age > b.lifespan) {
       b.die();
     } else {
-
-      ////flee/flock
-      //PVector flee = new PVector(0, 0);
-      //PVector flock = new PVector(0, 0);
-      //PVector personalspace = new PVector(0, 0);
-
-      //for (Bud be : buds) { //loop through all other buds
-      //  if (buds.get(i).id != be.id) { //if not self
-      //    float db = PVector.dist(buds.get(i).p, be.p);
-      //    if (buds.get(i).s != be.s) { //if species different
-      //      if (db < 100*buds.get(i).fear) {
-      //        flee.add(buds.get(i).flee(be.p));
-      //      }
-      //    } else { //if species same
-      //      if (db > 50*buds.get(i).fear && db < 150) {
-      //        flock.add(buds.get(i).flock(be.p));
-      //      }
-      //      if (db < buds.get(i).d*2) {
-      //        personalspace.add(buds.get(i).personalspace(be.p));
-      //      }
-      //    }
-      //  }
-      //}
-      //buds.get(i).applyMuscle(flee);
-      //buds.get(i).applyMuscle(flock);
-      //buds.get(i).applyMuscle(personalspace);
-
-      ////fatigue
-      //PVector fatigue = buds.get(i).fatigue();
-      //buds.get(i).applyMuscle(fatigue);
-
-      ////halt
-      //PVector halt = buds.get(i).halt();
-      //buds.get(i).applyMuscle(halt);
-
-      //feed
-      //PVector feed = new PVector(0, 0);
-      //float db = 9999;
-      //int closeflower = -1;
-      //for (int j = flowers.size() - 1; j >= 0; j--) {
-      //  float newdb = PVector.dist(buds.get(i).p, flowers.get(j).p);
-      //  if (newdb < db) {
-      //    db = newdb;
-      //    closeflower = j;
-      //  }
-      //}
-      //if (db < buds.get(i).d/2) {
-      //  flowers.remove(closeflower);
-      //  if (random(1) > 0.5) {
-      //    effects.add(new Effect(buds.get(i).p.x - 10, buds.get(i).p.y - buds.get(i).d, "BIRTH"));
-      //    totalbirths++;
-      //    buds.add(new Bud(buds.get(i).p.x, buds.get(i).p.y, buds.size()));
-      //  } else {
-      //    effects.add(new Effect(buds.get(i).p.x - 5, buds.get(i).p.y - buds.get(i).d, "EAT"));
-      //    buds.get(i).lifespan += 5;
-      //  }
-      //} else if (db < 75) {
-      //  feed.add(buds.get(i).feed(flowers.get(closeflower).p));
-      //}
-      //buds.get(i).applyMuscle(feed);
-      //b.decide();
       b.update();
       b.show();
     }
   }
   
   //random flower growth
-<<<<<<< HEAD
-  if (random(1) < 0.05) {
-    flowers.add(new Flower(random(width), random(height)));
-=======
   if (random(1) < 0.01) {
-    flowers.add(new Flower(random(width), random(height), flowers.size()));
->>>>>>> 3861b6e8be8743701e95679109369a2d98b4899c
+    flowers.add(new Flower(random(width), random(height)));
   }
 
   //show all flowers

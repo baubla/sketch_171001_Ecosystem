@@ -92,77 +92,15 @@ class Bud extends WorldObject {
     applyForce(f);
   }
 
-  //PVector flock(PVector friend) {
-  //  PVector f = PVector.sub(friend, p);
-  //  f.setMag(0.001*fear*f.mag());
-  //  return f;
-  //}
-
-  //PVector personalspace(PVector friend) {
-  //  PVector f = PVector.sub(friend, p);
-  //  f.setMag(-2/f.mag());
-  //  return f;
-  //}
-
   void fatigue() {
     PVector f = v.copy().mult(-10*v.mag());
     applyForce(f);
   }
 
-  //PVector halt() {
-  //  PVector f = v.copy().mult(-2);
-  //  return f;
-  //}
-
-  //PVector feed(PVector flower) {
-  //  PVector f = PVector.sub(flower, p);
-  //  f.setMag(1);
-  //  return f;
-  //}
-
-  //PVector attract(Bud potentialMate) {
-  //  float difR = abs(red(potentialMate.c)-red(c))/255;
-  //  float difG = abs(green(potentialMate.c)-green(c))/255;
-  //  float difB = abs(blue(potentialMate.c)-blue(c))/255;
-  //  float difColor = difR*difG*difB;
-  //  if (difColor < 0.25) {
-  //    PVector f = PVector.sub(potentialMate.p, p);
-  //    f.setMag(1*f.mag());
-  //    return f;
-  //  } else {
-  //    PVector f = new PVector(0,0);
-  //    return f;
-  //  }
-  //}
-
   void applyForce(PVector f) {
     PVector fpm = PVector.div(f, pow(d, 2));
     a.add(fpm);
   }
-
-  //void mate(Bud b) {
-  //}
-
-  //void decide() {
-
-  //  Bud closestBud = null;
-  //  float closestDistance = 9999;
-
-  //  ArrayList<Bud> budsInView = new ArrayList<Bud>();
-
-  //  for (Bud b : buds) {
-  //    if (this != b) {
-  //      float distance = PVector.dist(p, b.p);
-  //      if (distance <= sight) {
-  //        budsInView.add(b);
-  //        if (distance < closestDistance) {
-  //          closestDistance = distance;
-  //          closestBud = b;
-  //        }
-  //      }
-  //    }
-  //  }
-  //}
 
   void decide() {
 
@@ -239,8 +177,9 @@ class Bud extends WorldObject {
   }
 
   void mate(Bud b) {
-<<<<<<< HEAD
     b.birth(DNA);
+    mateCooldown = 10;
+    b.mateCooldown = 10;
   }
   
   void birth(float[] fatherDNA) {
@@ -253,14 +192,9 @@ class Bud extends WorldObject {
     child.v = PVector.fromAngle(angle).mult(0.5);
     buds.add(new Bud(p.x, p.y, childDNA));
     
-=======
-    Bud child = new Bud(b.p.x, b.p.y, buds.size());
-    buds.add(child);
     effects.add(new Effect(p.x - 10, p.y - d, "BIRTH"));
     totalbirths++;
-    mateCooldown = 10;
-    b.mateCooldown = 10;
->>>>>>> 3861b6e8be8743701e95679109369a2d98b4899c
+    
   }
 
   void eat(Flower f) {
