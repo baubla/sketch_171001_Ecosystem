@@ -215,7 +215,7 @@ class Bud extends WorldObject {
     lifespan += f.size*2;
     d = d + f.size/10;
     flowers.remove(f);
-    feedCooldown = 5;
+    feedCooldown = 3;
   }
 
   float evaluateMate(Bud b) {

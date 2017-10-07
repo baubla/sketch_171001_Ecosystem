@@ -17,7 +17,7 @@ float dt = 1.0/60;
 int totaldeaths = 0;
 int totalbirths = 0;
 
-float mutationRate = 0.05;
+float mutationRate = 0.1;
 float randomFlowerSpawnRate = 0.02;
 
 final int BUDS_START = 20;
